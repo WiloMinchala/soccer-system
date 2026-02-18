@@ -158,25 +158,6 @@ $viewFile = __DIR__ . "/../app/views/{$modulo}.php";
     <!-- JS -->
     <script src="assets/js/app.js"></script>
 
-    <!-- 2️⃣ Modal HTML reutilizable -->
-    <!-- <div id="modal" class="modal hidden">
-        <div class="modal-content">
-            <h3 id="modal-title"></h3>
-            <input type="hidden" id="id">
-            <label>Nombre</label>
-            <input type="text" id="nombre">
-            <label>Color</label>
-            <input type="color" id="color">
-            <div class="modal-actions">
-                <button onclick="saveCategoria()" class="btn">
-                    Guardar
-                </button>
-                <button onclick="closeModal()" class="btn btn-danger">
-                    Cancelar
-                </button>
-            </div>
-        </div> -->
-
     </div>
 
 </body>

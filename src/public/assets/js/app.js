@@ -13,11 +13,9 @@ function startClock()
             '<br>' +
             now.toLocaleDateString();
     }
-
     updateClock();
     setInterval(updateClock, 1000);
 }
-
 
 /* ==========================================================
    CONFIGURACIÓN BASE
@@ -37,7 +35,6 @@ const state =
     resultados: []
 };
 
-
 /* ==========================================================
    FETCH GENERICO PROFESIONAL
 ========================================================== */
@@ -46,9 +43,7 @@ async function apiFetch(endpoint)
     try
     {
         const url = `${API_BASE}/${endpoint}.php`;
-
         console.log("Fetching:", url);
-
         const response = await fetch(url,
         {
             method: 'GET',
@@ -57,14 +52,11 @@ async function apiFetch(endpoint)
                 'Accept': 'application/json'
             }
         });
-
         if (!response.ok)
         {
             throw new Error(`HTTP ${response.status}`);
         }
-
         const text = await response.text();
-
         try
         {
             return JSON.parse(text);
@@ -74,7 +66,6 @@ async function apiFetch(endpoint)
             console.error("La API no devolvió JSON válido:", text);
             return [];
         }
-
     }
     catch(error)
     {
@@ -82,7 +73,6 @@ async function apiFetch(endpoint)
         return [];
     }
 }
-
 
 /* ==========================================================
    RENDER TABLA GENERICA
@@ -92,20 +82,17 @@ function renderTable(containerId, columns, data)
 {
     const container =
         document.getElementById(containerId);
-
     if (!container)
     {
         console.warn("Contenedor no encontrado:", containerId);
         return;
     }
-
     if (!Array.isArray(data) || data.length === 0)
     {
         container.innerHTML =
             `<div class="card">Sin datos</div>`;
         return;
     }
-
     let html =
     `
     <div class="card">
@@ -113,62 +100,53 @@ function renderTable(containerId, columns, data)
     <thead>
     <tr>
     `;
-
     columns.forEach(col =>
     {
         html += `<th>${escapeHtml(col.label)}</th>`;
     });
-
     html +=
     `
     </tr>
     </thead>
     <tbody>
     `;
-
     data.forEach(row =>
     {
         html += `<tr>`;
-
         columns.forEach(col =>
         {
             html += `<td>${escapeHtml(row[col.key])}</td>`;
         });
-
         html += `</tr>`;
     });
-
     html +=
     `
     </tbody>
     </table>
     </div>
     `;
-
     container.innerHTML = html;
 }
-
 
 /* ==========================================================
    MODULOS
 ========================================================== */
-
 async function loadCategorias()
 {
     const container =
         document.getElementById('tabla-categorias');
-
     if (!container) return;
-
     state.categorias =
         await apiFetch('categorias');
-
     renderTable(
         'tabla-categorias',
         [
             { key: 'id', label: 'ID' },
             { key: 'nombre', label: 'Nombre' },
-            { key: 'color', label: 'Color' }
+            { key: 'descripcion', label: 'Descripción' },
+            { key: 'color', label: 'Color' },
+            { key: 'costo_inscripcion', label: 'Costo Inscripción' },
+            { key: 'estado', label: 'Estado' }
         ],
         state.categorias
     );
@@ -179,25 +157,22 @@ async function loadEquipos()
 {
     const container =
         document.getElementById('tabla-equipos');
-
     if (!container) return;
-
     state.equipos =
         await apiFetch('equipos');
-
     renderTable(
         'tabla-equipos',
         [
             { key: 'id_equipo', label: 'ID' },
             { key: 'nombre_equipo', label: 'Nombre Equipo' },
-            { key: 'costo_inscripcion', label: 'Costo' },
+            { key: 'costo_inscripcion', label: 'Pago Inscripción' },
             { key: 'categoria_id', label: 'Categoria' },
-            { key: 'nombre_categoria', label: 'Nombre Categoria' }
+            { key: 'nombre_categoria', label: 'Nombre Categoria' },
+            { key: 'costo_inscripcion', label: 'Costo Inscripción' }
         ],
         state.equipos
     );
 }
-
 
 async function loadJugadores()
 {
@@ -231,12 +206,9 @@ async function loadEncuentros()
 {
     const container =
         document.getElementById('tabla-encuentros');
-
     if (!container) return;
-
     state.encuentros =
         await apiFetch('encuentros');
-
     renderTable(
         'tabla-encuentros',
         [
@@ -253,17 +225,13 @@ async function loadEncuentros()
     );
 }
 
-
 async function loadParticipaciones()
 {
     const container =
         document.getElementById('tabla-participaciones');
-
     if (!container) return;
-
     state.participaciones =
         await apiFetch('participaciones');
-
     renderTable(
         'tabla-participaciones',
         [
@@ -279,17 +247,13 @@ async function loadParticipaciones()
     );
 }
 
-
 async function loadPosiciones()
 {
     const container =
         document.getElementById('tabla-posiciones');
-
     if (!container) return;
-
     state.posiciones =
         await apiFetch('posiciones');
-
     renderTable(
         'tabla-posiciones',
         [
@@ -307,7 +271,6 @@ async function loadPosiciones()
     );
 }
 
-
 /* ==========================================================
    INICIO
 ========================================================== */
@@ -315,9 +278,7 @@ async function loadPosiciones()
 document.addEventListener('DOMContentLoaded', () =>
 {
     console.log("Sistema iniciado");
-
     startClock();
-
     loadCategorias();
     loadEquipos();
     loadJugadores();
@@ -325,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () =>
     loadParticipaciones();
     loadPosiciones();
 });
-
 
 /* ==========================================================
    SEGURIDAD
@@ -335,7 +295,6 @@ function escapeHtml(text)
 {
     if (text === null || text === undefined)
         return '';
-
     return text
         .toString()
         .replaceAll('&', '&amp;')

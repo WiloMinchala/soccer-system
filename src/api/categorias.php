@@ -14,7 +14,7 @@ try {
     $pdo = Database::connect();
 
     $stmt = $pdo->query("
-        SELECT id, nombre, color
+        SELECT id, nombre, descripcion, color, costo_inscripcion, estado
         FROM categorias
         ORDER BY id
     ");
