@@ -1,0 +1,464 @@
+/*
+|--------------------------------------------------------------------------
+| RESET PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| LAYOUT
+|--------------------------------------------------------------------------
+*/
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SIDEBAR PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.sidebar {
+
+    width: 240px;
+    background: #0f172a;
+    color: #e2e8f0;
+
+    display: flex;
+    flex-direction: column;
+
+    border-right: 1px solid #1e293b;
+}
+
+.sidebar-header {
+
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 600;
+    font-size: 18px;
+
+    background: #020617;
+
+    border-bottom: 1px solid #1e293b;
+}
+
+
+.menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+
+    padding: 14px 20px;
+
+    text-decoration: none;
+
+    color: #cbd5e1;
+
+    transition: all .2s ease;
+}
+
+.menu-item:hover {
+
+    background: #1e293b;
+    color: #ffffff;
+}
+
+.menu-item.active {
+
+    background: #2563eb;
+    color: white;
+
+    border-left: 4px solid #60a5fa;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MAIN
+|--------------------------------------------------------------------------
+*/
+
+.main {
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #f8fafc;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| HEADER PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.header {
+
+    height: 60px;
+
+    background: white;
+
+    padding: 0 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+#clock {
+
+    font-size: 14px;
+    color: #64748b;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SOCIAL ICONS
+|--------------------------------------------------------------------------
+*/
+
+.social-icons a {
+
+    color: #64748b;
+
+    font-size: 18px;
+
+    transition: .2s;
+}
+
+.social-icons a:hover {
+
+    color: #2563eb;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CONTENT
+|--------------------------------------------------------------------------
+*/
+
+.content {
+
+    padding: 20px;
+
+    overflow-y: auto;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CARD PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.card {
+
+    background: white;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    border: 1px solid #e2e8f0;
+
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+
+    margin-bottom: 15px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| BUTTON PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.btn {
+
+    background: #2563eb;
+
+    color: white;
+
+    border: none;
+
+    padding: 8px 14px;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.btn:hover {
+
+    background: #1d4ed8;
+}
+
+
+.btn_r {
+
+    background: white;
+
+    border: 1px solid #cbd5e1;
+
+    padding: 8px 10px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    color: #64748b;
+}
+
+.btn_r:hover {
+
+    background: #f1f5f9;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TABLE PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+}
+
+
+/* HEADER TABLA */
+
+.table th {
+
+    background: #f1f5f9;
+
+    color: #334155;
+
+    font-weight: 600;
+
+    text-align: left;
+
+    padding: 10px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+/* FILAS TABLA */
+
+.table td {
+
+    padding: 9px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FILAS IMPARES (IMPORTANTE)
+|--------------------------------------------------------------------------
+|
+| AQUI se aplica el tono suave alternado
+|
+*/
+
+.table tbody tr:nth-child(odd) {
+
+    background: #f8fafc;
+
+}
+
+.table tbody tr:nth-child(even) {
+
+    background: #ffffff;
+
+}
+
+.table tbody tr:hover {
+
+    background: #e0f2fe;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| BOTONES ACCION
+|--------------------------------------------------------------------------
+*/
+
+.btn-action {
+
+    border: none;
+
+    background: none;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    margin-right: 5px;
+}
+
+.btn-action.edit {
+
+    color: #2563eb;
+}
+
+.btn-action.delete {
+
+    color: #ef4444;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MODAL PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(15,23,42,.5);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.hidden {
+
+    display: none;
+}
+
+.modal-content {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 8px;
+
+    width: 320px;
+
+    border: 1px solid #e2e8f0;
+}
+
+.modal-content input {
+
+    width: 100%;
+
+    padding: 8px;
+
+    margin-bottom: 10px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 6px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FOOTER
+|--------------------------------------------------------------------------
+*/
+
+.footer {
+
+    background: white;
+
+    border-top: 1px solid #e2e8f0;
+
+    padding: 10px;
+
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| RESPONSIVE PROFESIONAL
+|--------------------------------------------------------------------------
+*/
+
+@media (max-width: 900px)
+{
+
+    .sidebar {
+
+        width: 200px;
+    }
+}
+
+@media (max-width: 768px)
+{
+
+    .sidebar {
+
+        display: none;
+    }
+
+    .content {
+
+        padding: 10px;
+    }
+
+}
