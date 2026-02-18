@@ -1,0 +1,27 @@
+{
+  "name": "Soccer System Dev",
+
+  "image": "mcr.microsoft.com/devcontainers/php:8.2",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-debug",
+        "ms-azuretools.vscode-docker",
+        "GitHub.copilot"
+      ]
+    }
+  },
+
+  "postCreateCommand": "sudo apt update && sudo apt install -y nginx",
+
+  "forwardPorts": [8000],
+
+  "remoteUser": "vscode"
+}
