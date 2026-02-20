@@ -20,7 +20,7 @@ $modulosPermitidos = [
     'equipos',
     'jugadores',
     'encuentros',
-    'participaciones', //psoiblemente hay que eliminar
+    // 'participaciones', //psoiblemente hay que eliminar
     'posiciones', // posiblemente hay que eliminar
     'reportes',
     'goleadores_general',
@@ -82,10 +82,6 @@ $viewFile = __DIR__ . "/../app/views/{$modulo}.php";
                 <a href="?modulo=encuentros"
                     class="menu-item <?= $modulo === 'encuentros' ? 'active' : '' ?>">
                     Encuentros
-                </a>
-                <a href="?modulo=participaciones"
-                    class="menu-item <?= $modulo === 'participaciones' ? 'active' : '' ?>">
-                    Participaciones
                 </a>
                 <a href="?modulo=posiciones"
                     class="menu-item <?= $modulo === 'posiciones' ? 'active' : '' ?>">

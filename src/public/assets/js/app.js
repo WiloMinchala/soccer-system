@@ -8,10 +8,7 @@ function startClock()
     function updateClock()
     {
         const now = new Date();
-        clock.innerHTML =
-            now.toLocaleTimeString() +
-            '<br>' +
-            now.toLocaleDateString();
+        clock.innerHTML = now.toLocaleTimeString() + '<br>' + now.toLocaleDateString();
     }
     updateClock();
     setInterval(updateClock, 1000);
@@ -21,14 +18,13 @@ function startClock()
    CONFIGURACIÓN BASE
 ========================================================== */
 const API_BASE = '/api';
-
 const state =
 {
     categorias: [],
     equipos: [],
     jugadores: [],
     encuentros: [],
-    participaciones: [],
+    // participaciones: [],
     posiciones: [],
     reportes: [],
     goleadores_general: [],
@@ -77,197 +73,367 @@ async function apiFetch(endpoint)
 /* ==========================================================
    RENDER TABLA GENERICA
 ========================================================== */
-
-function renderTable(containerId, columns, data)
+function renderTable(containerId, columns, data, options = {})
 {
-    const container =
-        document.getElementById(containerId);
-    if (!container)
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!Array.isArray(data)) data = [];
+    const state =
     {
-        console.warn("Contenedor no encontrado:", containerId);
-        return;
+        page: 1,
+        perPage: options.perPage || 10,
+        search: '',
+        sortKey: null,
+        sortDir: 'asc'
+    };
+    function filterData()
+    {
+        let filtered = [...data];
+        // SEARCH
+        if (state.search)
+        {
+            filtered = filtered.filter(row =>
+                Object.values(row)
+                .some(val =>
+                    String(val)
+                    .toLowerCase()
+                    .includes(state.search)
+                )
+            );
+        }
+        // SORT
+        if (state.sortKey)
+        {
+            filtered.sort((a,b)=>
+            {
+                let v1 = a[state.sortKey];
+                let v2 = b[state.sortKey];
+                if (v1 < v2) return state.sortDir==='asc'? -1 : 1;
+                if (v1 > v2) return state.sortDir==='asc'? 1 : -1;
+                return 0;
+            });
+        }
+        return filtered;
     }
-    if (!Array.isArray(data) || data.length === 0)
+
+    function paginateData(filtered)
     {
-        container.innerHTML =
-            `<div class="card">Sin datos</div>`;
-        return;
+        const start = (state.page - 1) * state.perPage;
+        return filtered.slice(start, start + state.perPage);
     }
-    let html =
-    `
-    <div class="card">
-    <table class="table">
-    <thead>
-    <tr>
-    `;
-    columns.forEach(col =>
+
+    function render()
     {
-        html += `<th>${escapeHtml(col.label)}</th>`;
-    });
-    html +=
-    `
-    </tr>
-    </thead>
-    <tbody>
-    `;
-    data.forEach(row =>
-    {
-        html += `<tr>`;
+        const filtered = filterData();
+        const paginated = paginateData(filtered);
+        const totalPages = Math.ceil(filtered.length / state.perPage);
+
+        let html = `
+        <div class="card">
+            <div class="table-header">
+                <input
+                    type="text"
+                    placeholder="Buscar..."
+                    class="table-search"
+                    id="table-search"
+                >
+
+            </div>
+            <div class="table-container">
+            <table class="table">
+            <thead>
+            <tr>
+        `;
+
         columns.forEach(col =>
         {
-            html += `<td>${escapeHtml(row[col.key])}</td>`;
+            html += `
+            <th class="${col.align==='center'?'text-center':''}"
+                data-sort="${col.key}"
+                style="cursor:pointer"
+            >
+                ${escapeHtml(col.label)}
+            </th>`;
         });
-        html += `</tr>`;
-    });
-    html +=
-    `
-    </tbody>
-    </table>
-    </div>
-    `;
-    container.innerHTML = html;
-}
 
+        html += `</tr></thead><tbody>`;
+
+        if (paginated.length === 0)
+        {
+            html += `
+            <tr>
+                <td colspan="${columns.length}"
+                class="text-center">
+                Sin datos
+                </td>
+            </tr>`;
+        }
+
+        paginated.forEach(row =>
+        {
+            html += `<tr>`;
+            columns.forEach(col =>
+            {
+                html += renderCell(col, row);
+            });
+            html += `</tr>`;
+        });
+        html += `
+        </tbody>
+        </table>
+        </div>
+
+        ${renderPagination(state.page, totalPages)}
+        </div>
+        `;
+        container.innerHTML = html;
+        bindEvents(totalPages);
+    }
+
+    function renderCell(col, row)
+    {
+        let value = row[col.key];
+        let align =
+            col.align === 'center'
+            ? 'text-center'
+            : '';
+        // STATUS
+        if (col.type === 'status')
+        {
+            const active =
+                value == 1 ||
+                value == 'activo';
+            return `
+            <td class="text-center">
+                <span class="
+                badge
+                ${active?'badge-active':'badge-inactive'}">
+                ${active?'Activo':'Inactivo'}
+
+                </span>
+
+            </td>`;
+        }
+        // ACTIONS
+        if (col.type === 'actions')
+        {
+            return `
+            <td class="text-center">
+
+                <button
+                class="btn-action edit"
+                onclick="editRow(${row.id})">
+                ✏️
+                </button>
+
+                <button
+                class="btn-action delete"
+                onclick="deleteRow(${row.id})">
+                🗑️
+                </button>
+
+            </td>`;
+        }
+        return `
+        <td class="${align}">
+            ${escapeHtml(value ?? '')}
+        </td>`;
+    }
+
+    function renderPagination(page, totalPages)
+    {
+        if (totalPages <= 1) return '';
+        return `
+        <div class="pagination">
+            <button
+            ${page==1?'disabled':''}
+            onclick="changePage(${page-1})">
+            Anterior
+            </button>
+            <span>
+            Página ${page} de ${totalPages}
+            </span>
+            <button
+            ${page==totalPages?'disabled':''}
+            onclick="changePage(${page+1})">
+            Siguiente
+            </button>
+
+        </div>
+        `;
+    }
+
+    function bindEvents(totalPages)
+    {
+        document
+        .getElementById('table-search')
+        .addEventListener('input', e =>
+        {
+            state.search =
+                e.target.value.toLowerCase();
+
+            state.page = 1;
+
+            render();
+        });
+
+        document
+        .querySelectorAll('[data-sort]')
+        .forEach(th =>
+        {
+            th.onclick = () =>
+            {
+                const key = th.dataset.sort;
+
+                if (state.sortKey === key)
+                {
+                    state.sortDir =
+                        state.sortDir === 'asc'
+                        ? 'desc'
+                        : 'asc';
+                }
+                else
+                {
+                    state.sortKey = key;
+                    state.sortDir = 'asc';
+                }
+
+                render();
+            };
+        });
+
+        window.changePage = function(p)
+        {
+            if (p < 1 || p > totalPages) return;
+
+            state.page = p;
+
+            render();
+        }
+    }
+
+    render();
+}
 /* ==========================================================
    MODULOS
 ========================================================== */
 async function loadCategorias()
 {
-    const container =
-        document.getElementById('tabla-categorias');
+    const container = document.getElementById('tabla-categorias');
     if (!container) return;
-    state.categorias =
-        await apiFetch('categorias');
+    state.categorias = await apiFetch('categorias');
     renderTable(
         'tabla-categorias',
         [
-            { key: 'id', label: 'ID' },
+            { key: 'id_categoria', label: 'ID', align:'center'},
             { key: 'nombre', label: 'Nombre' },
-            { key: 'descripcion', label: 'Descripción' },
-            { key: 'color', label: 'Color' },
-            { key: 'costo_inscripcion', label: 'Costo Inscripción' },
-            { key: 'estado', label: 'Estado' }
+            { key: 'descripcion', label: 'Descripción'},
+            { key: 'color', label: 'Color', align:'center'},
+            { key: 'costo_inscripcion', label: 'Costo Inscripción', align:'center'},
+            { key: 'estado', label: 'Estado', align:'center', type:'status'},
+            { key: 'id_categoria', label: 'Acciones', type: 'actions'}
         ],
-        state.categorias
+        state.categorias,
+        { perPage: 13 }
     );
 }
 
-
 async function loadEquipos()
 {
-    const container =
-        document.getElementById('tabla-equipos');
+    const container = document.getElementById('tabla-equipos');
     if (!container) return;
-    state.equipos =
-        await apiFetch('equipos');
+    state.equipos = await apiFetch('equipos');
     renderTable(
         'tabla-equipos',
         [
-            { key: 'id_equipo', label: 'ID' },
-            { key: 'nombre_equipo', label: 'Nombre Equipo' },
-            { key: 'costo_inscripcion', label: 'Pago Inscripción' },
-            { key: 'categoria_id', label: 'Categoria' },
-            { key: 'nombre_categoria', label: 'Nombre Categoria' },
-            { key: 'costo_inscripcion', label: 'Costo Inscripción' }
+            { key: 'id_equipo', label: 'ID', align: 'center'},
+            { key: 'nombre_equipo', label: 'Nombre Equipo'},
+            { key: 'nombre_categoria', label: 'Categoria'},
+            { key: 'pago_inscripcion', label: 'Pago Inscripción', align: 'center'},
+            { key: 'costo_inscripcion', label: 'Costo Inscripción', align: 'center'},
+            { key: 'estado', label: 'Estado', align:'center', type:'status'},
+            { key: 'id_equipo', label: 'Acciones', align: 'center', type: 'actions'}
         ],
-        state.equipos
+        state.equipos,
+        { perPage: 13 }
     );
 }
 
 async function loadJugadores()
 {
-    const container =
-        document.getElementById('tabla-jugadores');
-
+    const container = document.getElementById('tabla-jugadores');
     if (!container) return;
-
-    state.jugadores =
-        await apiFetch('jugadores');
-
+    state.jugadores = await apiFetch('jugadores');
     renderTable(
         'tabla-jugadores',
         [
-            { key: 'id_jugador', label: 'ID' },
-            { key: 'cedula', label: 'Cedula' },
+            { key: 'id_jugador', label: 'ID', align: 'center' },
+            { key: 'cedula', label: 'Cedula', align: 'center' },
             { key: 'nombres', label: 'Nombres Jugador' },
             { key: 'apellidos', label: 'Apellidos Jugador' },
-            { key: 'numero_camiseta', label: 'Numero' },
-            { key: 'equipo_id', label: 'ID Equipo' },
+            { key: 'numero_camiseta', label: 'Numero Camiseta', align: 'center' },
+            { key: 'equipo_id', label: 'ID Equipo', align: 'center' },
             { key: 'nombre_equipo', label: 'Nombre Equipo' },
-            { key: 'categoria_id', label: 'ID Categoria' },
-            { key: 'nombre_categoria', label: 'Nombre Categoria' }
+            { key: 'categoria_id', label: 'ID Categoria', align: 'center'},
+            { key: 'nombre_categoria', label: 'Nombre Categoria' },
+            { key: 'estado', label: 'Estado', align:'center', type:'status'},
+            { key: 'id_jugador', label: 'Acciones', align: 'center', type: 'actions'}
         ],
-        state.jugadores
+        state.jugadores,
+        { perPage: 13 }
     );
 }
-
 
 async function loadEncuentros()
 {
-    const container =
-        document.getElementById('tabla-encuentros');
+    const container = document.getElementById('tabla-encuentros');
     if (!container) return;
-    state.encuentros =
-        await apiFetch('encuentros');
+    state.encuentros = await apiFetch('encuentros');
     renderTable(
         'tabla-encuentros',
         [
-            { key: 'id', label: 'ID' },
-            { key: 'categoria_id', label: 'Categoria' },
-            { key: 'equipo_local_id', label: 'Local' },
-            { key: 'equipo_visitante_id', label: 'Visitante' },
-            { key: 'fecha', label: 'Fecha' },
-            { key: 'goles_local', label: 'GL' },
-            { key: 'goles_visitante', label: 'GV' },
-            { key: 'finalizado', label: 'Finalizado' }
+            { key: 'id_encuentro', label: 'ID', align: 'center' },
+            { key: 'equipo_local', label: 'Equipo Local' },
+            { key: 'goles_local', label: 'GL', align: 'center' },
+            { key: 'equipo_visitante', label: 'Equipo Visitante' },
+            { key: 'goles_visitante', label: 'GV', align: 'center' },
+            { key: 'fecha_hora_encuentro', label: 'Fecha Partido' },
+            { key: 'nombre_categoria', label: 'Categoria' },
+            { key: 'finalizado', label: 'Finalizado', align: 'center' },
+            { key: 'pago_arbitraje_local', label: 'Pago Arbitraje Local' },
+            { key: 'pago_arbitraje_visitante', label: 'Pago Arbitraje Visitante' },
+            { key: 'estado', label: 'Estado', align:'center', type:'status'},
+            { key: 'id_encuentro', label: 'Acciones', align: 'center', type: 'actions'}
         ],
-        state.encuentros
-    );
-}
-
-async function loadParticipaciones()
-{
-    const container =
-        document.getElementById('tabla-participaciones');
-    if (!container) return;
-    state.participaciones =
-        await apiFetch('participaciones');
-    renderTable(
-        'tabla-participaciones',
-        [
-            { key: 'id', label: 'ID' },
-            { key: 'encuentro_id', label: 'Encuentro' },
-            { key: 'jugador_id', label: 'Jugador' },
-            { key: 'equipo_id', label: 'Equipo' },
-            { key: 'goles', label: 'Goles' },
-            { key: 'tarjeta_amarilla', label: 'Amarilla' },
-            { key: 'tarjeta_roja', label: 'Roja' }
-        ],
-        state.participaciones
+        state.encuentros,
+        { perPage: 13 }
     );
 }
 
 async function loadPosiciones()
 {
-    const container =
-        document.getElementById('tabla-posiciones');
+    const container = document.getElementById('tabla-posiciones');
     if (!container) return;
-    state.posiciones =
-        await apiFetch('posiciones');
+    state.posiciones = await apiFetch('posiciones');
     renderTable(
-        'tabla-posiciones',
-        [
-            { key: 'equipo_id', label: 'Equipo' },
-            { key: 'puntos', label: 'Puntos' },
-            { key: 'partidos_jugados', label: 'PJ' },
-            { key: 'partidos_ganados', label: 'PG' },
-            { key: 'partidos_empatados', label: 'PE' },
-            { key: 'partidos_perdidos', label: 'PP' },
-            { key: 'goles_a_favor', label: 'GF' },
-            { key: 'goles_en_contra', label: 'GC' },
-            { key: 'diferencia_goles', label: 'DG' }
-        ],
-        state.posiciones
+       'tabla-posiciones',
+       [
+        { key: 'id', label: 'ID', align: 'center' },
+        { key: 'nombre_categoria', label: 'Categoría' },
+        { key: 'equipo_nombre', label: 'Equipo' }, 
+        { key: 'partidos_jugados', label: 'PJ', align: 'center' }, // Partidos Jugados
+        { key: 'partidos_ganados', label: 'PG', align: 'center' }, // Partidos Ganados
+        { key: 'partidos_empatados', label: 'PE', align: 'center' }, // Partidos Empatados
+        { key: 'partidos_perdidos', label: 'PP', align: 'center' }, // Partidos Perdidos
+        { key: 'goles_a_favor', label: 'GF', align: 'center' }, // Goles a Favor
+        { key: 'goles_en_contra', label: 'GC', align: 'center' }, // Goles en Contra
+        { key: 'diferencia_goles', label: 'DG', align: 'center' }, // Diferencia de Goles
+        { key: 'puntos', label: 'Puntos', align: 'center' }, // Puntos
+        { key: 'estado', label: 'Estado', align:'center', type:'status'},
+        { key: 'id', label: 'Acciones', align: 'center', type: 'actions'}
+       ],
+        state.posiciones,
+        { perPage: 13 }
     );
 }
 
@@ -302,4 +468,15 @@ function escapeHtml(text)
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
+}
+
+function editRow(id)
+{
+    console.log("Editar:", id);
+}
+
+function deleteRow(id)
+{
+    if (!confirm("Eliminar registro?")) return;
+    console.log("Eliminar:", id);
 }

@@ -9,7 +9,7 @@ try {
     $pdo = Database::connect();
 
     $stmt = $pdo->query("
-    SELECT j.id as id_jugador, j.cedula, j.nombres, j.apellidos, j.numero_camiseta, j.equipo_id, e.nombre as nombre_equipo, j.categoria_id, c.nombre as nombre_categoria
+    SELECT j.id as id_jugador, j.cedula, j.nombres, j.apellidos, j.numero_camiseta, j.equipo_id, e.nombre as nombre_equipo, j.categoria_id, c.nombre as nombre_categoria, j.estado
     FROM jugadores j
     inner join equipos e on j.equipo_id = e.id
     inner join categorias c on j.categoria_id = c.id  

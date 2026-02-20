@@ -3,7 +3,6 @@
 | RESET PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 *,
 *::before,
 *::after {
@@ -20,28 +19,21 @@ body {
     background-color: #f1f5f9;
     color: #1e293b;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | LAYOUT
 |--------------------------------------------------------------------------
 */
-
 .app {
     display: flex;
     min-height: 100vh;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | SIDEBAR PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .sidebar {
-
     width: 240px;
     background: #0f172a;
     color: #e2e8f0;
@@ -53,7 +45,6 @@ body {
 }
 
 .sidebar-header {
-
     height: 60px;
 
     display: flex;
@@ -67,7 +58,6 @@ body {
 
     border-bottom: 1px solid #1e293b;
 }
-
 
 .menu {
     display: flex;
@@ -98,14 +88,11 @@ body {
 
     border-left: 4px solid #60a5fa;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | MAIN
 |--------------------------------------------------------------------------
 */
-
 .main {
 
     flex: 1;
@@ -115,14 +102,11 @@ body {
 
     background: #f8fafc;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | HEADER PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .header {
 
     height: 60px;
@@ -145,14 +129,11 @@ body {
     font-size: 14px;
     color: #64748b;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | SOCIAL ICONS
 |--------------------------------------------------------------------------
 */
-
 .social-icons a {
 
     color: #64748b;
@@ -166,28 +147,22 @@ body {
 
     color: #2563eb;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | CONTENT
 |--------------------------------------------------------------------------
 */
-
 .content {
 
     padding: 20px;
 
     overflow-y: auto;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | CARD PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .card {
 
     background: white;
@@ -202,14 +177,11 @@ body {
 
     margin-bottom: 15px;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | BUTTON PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .btn {
 
     background: #2563eb;
@@ -254,14 +226,11 @@ body {
 
     background: #f1f5f9;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | TABLE PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .table {
 
     width: 100%;
@@ -270,10 +239,7 @@ body {
 
     font-size: 14px;
 }
-
-
 /* HEADER TABLA */
-
 .table th {
 
     background: #f1f5f9;
@@ -288,10 +254,7 @@ body {
 
     border-bottom: 1px solid #e2e8f0;
 }
-
-
 /* FILAS TABLA */
-
 .table td {
 
     padding: 9px;
@@ -299,7 +262,56 @@ body {
     border-bottom: 1px solid #e2e8f0;
 }
 
+.table-header
+{
+    display:flex;
 
+    justify-content:space-between;
+
+    margin-bottom:10px;
+}
+
+.table-search
+{
+    padding:8px;
+
+    border:1px solid #ddd;
+
+    border-radius:6px;
+
+    width:200px;
+}
+
+.pagination
+{
+    display:flex;
+
+    justify-content:center;
+
+    gap:10px;
+
+    margin-top:10px;
+}
+
+.pagination button
+{
+    padding:6px 12px;
+
+    border:none;
+
+    background:#3b82f6;
+
+    color:white;
+
+    border-radius:6px;
+
+    cursor:pointer;
+}
+
+.pagination button:disabled
+{
+    background:#ccc;
+}
 /*
 |--------------------------------------------------------------------------
 | FILAS IMPARES (IMPORTANTE)
@@ -308,7 +320,6 @@ body {
 | AQUI se aplica el tono suave alternado
 |
 */
-
 .table tbody tr:nth-child(odd) {
 
     background: #f8fafc;
@@ -326,14 +337,11 @@ body {
     background: #e0f2fe;
 
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | BOTONES ACCION
 |--------------------------------------------------------------------------
 */
-
 .btn-action {
 
     border: none;
@@ -356,14 +364,15 @@ body {
 
     color: #ef4444;
 }
-
-
+.btn-action:hover
+{
+    transform: scale(1.2);
+}
 /*
 |--------------------------------------------------------------------------
 | MODAL PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 .modal {
 
     position: fixed;
@@ -409,14 +418,11 @@ body {
 
     border-radius: 6px;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | FOOTER
 |--------------------------------------------------------------------------
 */
-
 .footer {
 
     background: white;
@@ -431,14 +437,11 @@ body {
 
     font-size: 13px;
 }
-
-
 /*
 |--------------------------------------------------------------------------
 | RESPONSIVE PROFESIONAL
 |--------------------------------------------------------------------------
 */
-
 @media (max-width: 900px)
 {
 
@@ -461,4 +464,41 @@ body {
         padding: 10px;
     }
 
+}
+/* BADGE base */
+.badge
+{
+    padding: 4px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    display: inline-block;
+}
+/* ACTIVO */
+.badge-active
+{
+    background-color: #dcfce7;
+
+    color: #166534;
+}
+/* INACTIVO */
+.badge-inactive
+{
+    background-color: #fee2e2;
+
+    color: #991b1b;
+}
+/* CENTRADO */
+.text-center
+{
+    text-align: center;
+}
+/* contenedor profesional */
+.table-container
+{
+    overflow-x: auto;
 }
