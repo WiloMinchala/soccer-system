@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-require_once __DIR__ . '/../config/database.php';
+// require_once __DIR__ . '/../config/database.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -20,11 +20,11 @@ $modulosPermitidos = [
     'equipos',
     'jugadores',
     'encuentros',
-    // 'participaciones', //psoiblemente hay que eliminar
-    'posiciones', // posiblemente hay que eliminar
-    'reportes',
-    'goleadores_general',
-    'resultados' // analizar que no duplique lo que muestra Reportes o Goleadores General
+    'posiciones_v',
+    'tarjetas_v',
+    'resultados_v',
+    'goleadores_general_v',
+    'reportes'
 ];
 
 // Si la condición es verdadera (es decir, si $modulo no es un módulo permitido), se asigna el valor 'inicio' a la variable $modulo. 
@@ -83,21 +83,25 @@ $viewFile = __DIR__ . "/../app/views/{$modulo}.php";
                     class="menu-item <?= $modulo === 'encuentros' ? 'active' : '' ?>">
                     Encuentros
                 </a>
-                <a href="?modulo=posiciones"
-                    class="menu-item <?= $modulo === 'posiciones' ? 'active' : '' ?>">
+                <a href="?modulo=resultados_v"
+                    class="menu-item <?= $modulo === 'resultados_v' ? 'active' : '' ?>">
+                    Resultados
+                </a>
+                <a href="?modulo=posiciones_v"
+                    class="menu-item <?= $modulo === 'posiciones_v' ? 'active' : '' ?>">
                     Posiciones
+                </a>
+                <a href="?modulo=tarjetas_v"
+                    class="menu-item <?= $modulo === 'tarjetas_v' ? 'active' : '' ?>">
+                    Tarjetas
+                </a>
+                <a href="?modulo=goleadores_general_v"
+                    class="menu-item <?= $modulo === 'goleadores_general_v' ? 'active' : '' ?>">
+                    Goleadores General
                 </a>
                 <a href="?modulo=reportes"
                     class="menu-item <?= $modulo === 'reportes' ? 'active' : '' ?>">
                     Reportes
-                </a>
-                <a href="?modulo=goleadores_general"
-                    class="menu-item <?= $modulo === 'goleadores_general' ? 'active' : '' ?>">
-                    Goleadores General
-                </a>
-                <a href="?modulo=resultados"
-                    class="menu-item <?= $modulo === 'resultados' ? 'active' : '' ?>">
-                    Resultados
                 </a>
             </nav>
         </aside>

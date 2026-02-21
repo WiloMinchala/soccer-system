@@ -24,8 +24,8 @@ const state =
     equipos: [],
     jugadores: [],
     encuentros: [],
-    // participaciones: [],
     posiciones: [],
+    tarjetas: [],
     reportes: [],
     goleadores_general: [],
     resultados: []
@@ -34,286 +34,246 @@ const state =
 /* ==========================================================
    FETCH GENERICO PROFESIONAL
 ========================================================== */
+
 async function apiFetch(endpoint)
 {
     try
     {
         const url = `${API_BASE}/${endpoint}.php`;
-        console.log("Fetching:", url);
+
         const response = await fetch(url,
         {
             method: 'GET',
-            headers:
-            {
-                'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
         });
+
         if (!response.ok)
         {
-            throw new Error(`HTTP ${response.status}`);
+            return {
+                error: true,
+                type: 'http',
+                status: response.status,
+                message: `Error HTTP ${response.status}`
+            };
         }
+
         const text = await response.text();
+
         try
         {
-            return JSON.parse(text);
+            const json = JSON.parse(text);
+
+            if (json.error)
+            {
+                return {
+                    error: true,
+                    type: 'server',
+                    message: json.error
+                };
+            }
+
+            return {
+                error: false,
+                data: json
+            };
         }
         catch
         {
-            console.error("La API no devolvió JSON válido:", text);
-            return [];
+            return {
+                error: true,
+                type: 'format',
+                message: 'Respuesta no es JSON válido'
+            };
         }
     }
     catch(error)
     {
-        console.error("Error en apiFetch:", error);
-        return [];
+        return {
+            error: true,
+            type: 'network',
+            message: 'Error de conexión al servidor'
+        };
     }
 }
-
 /* ==========================================================
    RENDER TABLA GENERICA
 ========================================================== */
-function renderTable(containerId, columns, data, options = {})
+function renderTable(containerId, columns, result, options = {})
 {
     const container = document.getElementById(containerId);
-    if (!container) return;
-    if (!Array.isArray(data)) data = [];
-    const state =
+
+    if (!container)
     {
-        page: 1,
-        perPage: options.perPage || 10,
-        search: '',
-        sortKey: null,
-        sortDir: 'asc'
-    };
-    function filterData()
-    {
-        let filtered = [...data];
-        // SEARCH
-        if (state.search)
-        {
-            filtered = filtered.filter(row =>
-                Object.values(row)
-                .some(val =>
-                    String(val)
-                    .toLowerCase()
-                    .includes(state.search)
-                )
-            );
-        }
-        // SORT
-        if (state.sortKey)
-        {
-            filtered.sort((a,b)=>
-            {
-                let v1 = a[state.sortKey];
-                let v2 = b[state.sortKey];
-                if (v1 < v2) return state.sortDir==='asc'? -1 : 1;
-                if (v1 > v2) return state.sortDir==='asc'? 1 : -1;
-                return 0;
-            });
-        }
-        return filtered;
+        console.warn("Contenedor no encontrado:", containerId);
+        return;
     }
 
-    function paginateData(filtered)
+    /*
+    |--------------------------------------------------------------------------
+    | 1. MANEJO DE ERROR API
+    |--------------------------------------------------------------------------
+    */
+
+    if (result?.error)
     {
-        const start = (state.page - 1) * state.perPage;
-        return filtered.slice(start, start + state.perPage);
-    }
+        let message = '';
 
-    function render()
-    {
-        const filtered = filterData();
-        const paginated = paginateData(filtered);
-        const totalPages = Math.ceil(filtered.length / state.perPage);
-
-        let html = `
-        <div class="card">
-            <div class="table-header">
-                <input
-                    type="text"
-                    placeholder="Buscar..."
-                    class="table-search"
-                    id="table-search"
-                >
-
-            </div>
-            <div class="table-container">
-            <table class="table">
-            <thead>
-            <tr>
-        `;
-
-        columns.forEach(col =>
+        switch(result.type)
         {
-            html += `
-            <th class="${col.align==='center'?'text-center':''}"
-                data-sort="${col.key}"
-                style="cursor:pointer"
-            >
-                ${escapeHtml(col.label)}
-            </th>`;
-        });
+            case 'network':
+                message = '❌ Sin conexión al servidor';
+                break;
 
-        html += `</tr></thead><tbody>`;
+            case 'http':
+                message = `❌ Error HTTP ${result.status}`;
+                break;
 
-        if (paginated.length === 0)
-        {
-            html += `
-            <tr>
-                <td colspan="${columns.length}"
-                class="text-center">
-                Sin datos
-                </td>
-            </tr>`;
+            case 'server':
+                message = `❌ Error del servidor: ${result.message}`;
+                break;
+
+            case 'format':
+                message = '❌ Respuesta inválida del servidor';
+                break;
+
+            default:
+                message = '❌ Error desconocido';
         }
 
-        paginated.forEach(row =>
-        {
-            html += `<tr>`;
-            columns.forEach(col =>
-            {
-                html += renderCell(col, row);
-            });
-            html += `</tr>`;
-        });
-        html += `
-        </tbody>
-        </table>
-        </div>
-
-        ${renderPagination(state.page, totalPages)}
+        container.innerHTML =
+        `
+        <div class="card text-center" style="color:#dc2626;font-weight:600;">
+            ${message}
         </div>
         `;
-        container.innerHTML = html;
-        bindEvents(totalPages);
+
+        return;
     }
 
-    function renderCell(col, row)
+    /*
+    |--------------------------------------------------------------------------
+    | 2. SIN REGISTROS
+    |--------------------------------------------------------------------------
+    */
+
+    const data = result.data;
+
+    if (!Array.isArray(data) || data.length === 0)
     {
-        let value = row[col.key];
-        let align =
+        container.innerHTML =
+        `
+        <div class="card text-center">
+            ℹ️ No existen registros
+        </div>
+        `;
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. RENDER TABLA NORMAL
+    |--------------------------------------------------------------------------
+    */
+
+    let html =
+    `
+    <div class="card table-container">
+    <table class="table">
+    <thead>
+    <tr>
+    `;
+
+    columns.forEach(col =>
+    {
+        const align =
             col.align === 'center'
             ? 'text-center'
             : '';
-        // STATUS
-        if (col.type === 'status')
-        {
-            const active =
-                value == 1 ||
-                value == 'activo';
-            return `
-            <td class="text-center">
-                <span class="
-                badge
-                ${active?'badge-active':'badge-inactive'}">
-                ${active?'Activo':'Inactivo'}
 
-                </span>
-
-            </td>`;
-        }
-        // ACTIONS
-        if (col.type === 'actions')
-        {
-            return `
-            <td class="text-center">
-
-                <button
-                class="btn-action edit"
-                onclick="editRow(${row.id})">
-                ✏️
-                </button>
-
-                <button
-                class="btn-action delete"
-                onclick="deleteRow(${row.id})">
-                🗑️
-                </button>
-
-            </td>`;
-        }
-        return `
-        <td class="${align}">
-            ${escapeHtml(value ?? '')}
-        </td>`;
-    }
-
-    function renderPagination(page, totalPages)
-    {
-        if (totalPages <= 1) return '';
-        return `
-        <div class="pagination">
-            <button
-            ${page==1?'disabled':''}
-            onclick="changePage(${page-1})">
-            Anterior
-            </button>
-            <span>
-            Página ${page} de ${totalPages}
-            </span>
-            <button
-            ${page==totalPages?'disabled':''}
-            onclick="changePage(${page+1})">
-            Siguiente
-            </button>
-
-        </div>
+        html +=
+        `
+        <th class="${align}">
+            ${escapeHtml(col.label)}
+        </th>
         `;
-    }
+    });
 
-    function bindEvents(totalPages)
+    html +=
+    `
+    </tr>
+    </thead>
+    <tbody>
+    `;
+
+    data.forEach(row =>
     {
-        document
-        .getElementById('table-search')
-        .addEventListener('input', e =>
+        html += `<tr>`;
+
+        columns.forEach(col =>
         {
-            state.search =
-                e.target.value.toLowerCase();
+            const align =
+                col.align === 'center'
+                ? 'text-center'
+                : '';
 
-            state.page = 1;
+            let value = row[col.key];
 
-            render();
-        });
-
-        document
-        .querySelectorAll('[data-sort]')
-        .forEach(th =>
-        {
-            th.onclick = () =>
-            {
-                const key = th.dataset.sort;
-
-                if (state.sortKey === key)
-                {
-                    state.sortDir =
-                        state.sortDir === 'asc'
-                        ? 'desc'
-                        : 'asc';
-                }
-                else
-                {
-                    state.sortKey = key;
-                    state.sortDir = 'asc';
-                }
-
-                render();
-            };
-        });
-
-        window.changePage = function(p)
-        {
-            if (p < 1 || p > totalPages) return;
-
-            state.page = p;
-
-            render();
-        }
-    }
-
-    render();
+            // if (col.render)
+            // {
+            //     value = col.render(value, row);
+            // }
+            // else
+            // {
+            //     value = escapeHtml(value);
+            // }
+            if (col.type === 'status')
+{
+    value = row[col.key] == 1
+        ? '<span class="badge-active">Activo</span>'
+        : '<span class="badge-inactive">Inactivo</span>';
 }
+else if (col.type === 'actions')
+{
+    value = `
+        <button class="btn-action edit" onclick="editRow(${row[col.key]})">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" onclick="deleteRow(${row[col.key]})">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+}
+else if (col.render)
+{
+    value = col.render(value, row);
+}
+else
+{
+    value = escapeHtml(value);
+}
+
+
+            html +=
+            `
+            <td class="${align}">
+                ${value}
+            </td>
+            `;
+        });
+
+        html += `</tr>`;
+    });
+
+    html +=
+    `
+    </tbody>
+    </table>
+    </div>
+    `;
+
+    container.innerHTML = html;
+}
+
 /* ==========================================================
    MODULOS
 ========================================================== */
@@ -413,30 +373,136 @@ async function loadEncuentros()
 async function loadPosiciones()
 {
     const container = document.getElementById('tabla-posiciones');
-    if (!container) return;
-    state.posiciones = await apiFetch('posiciones');
+
+    if (!container)
+    {
+        console.warn("Contenedor tabla-posiciones no existe");
+        return;
+    }
+
+    const result = await apiFetch('posiciones_api');
+
     renderTable(
        'tabla-posiciones',
        [
         { key: 'id', label: 'ID', align: 'center' },
         { key: 'nombre_categoria', label: 'Categoría' },
         { key: 'equipo_nombre', label: 'Equipo' }, 
-        { key: 'partidos_jugados', label: 'PJ', align: 'center' }, // Partidos Jugados
-        { key: 'partidos_ganados', label: 'PG', align: 'center' }, // Partidos Ganados
-        { key: 'partidos_empatados', label: 'PE', align: 'center' }, // Partidos Empatados
-        { key: 'partidos_perdidos', label: 'PP', align: 'center' }, // Partidos Perdidos
-        { key: 'goles_a_favor', label: 'GF', align: 'center' }, // Goles a Favor
-        { key: 'goles_en_contra', label: 'GC', align: 'center' }, // Goles en Contra
-        { key: 'diferencia_goles', label: 'DG', align: 'center' }, // Diferencia de Goles
-        { key: 'puntos', label: 'Puntos', align: 'center' }, // Puntos
+        { key: 'partidos_jugados', label: 'PJ', align: 'center' },
+        { key: 'partidos_ganados', label: 'PG', align: 'center' },
+        { key: 'partidos_empatados', label: 'PE', align: 'center' },
+        { key: 'partidos_perdidos', label: 'PP', align: 'center' },
+        { key: 'goles_a_favor', label: 'GF', align: 'center' },
+        { key: 'goles_en_contra', label: 'GC', align: 'center' },
+        { key: 'diferencia_goles', label: 'DG', align: 'center' },
+        { key: 'puntos', label: 'Puntos', align: 'center' },
         { key: 'estado', label: 'Estado', align:'center', type:'status'},
         { key: 'id', label: 'Acciones', align: 'center', type: 'actions'}
        ],
-        state.posiciones,
-        { perPage: 13 }
+        result
     );
+
+    if (!result.error)
+    {
+        state.posiciones = result.data;
+    }
 }
 
+async function loadTarjetas()
+{
+    const container = document.getElementById('tabla-tarjetas');
+
+    if (!container)
+    {
+        console.warn("Contenedor tabla-tarjetas no existe");
+        return;
+    }
+
+    const result = await apiFetch('tarjetas_api');
+
+    renderTable(
+       'tabla-tarjetas',
+       [
+        { key: 'id', label: 'ID', align: 'center' },
+        { key: 'jugador', label: 'Jugador' },
+        { key: 'equipo', label: 'Equipo' }, 
+        { key: 'encuentro', label: 'Encuentro' },
+        { key: 'fecha', label: 'Fecha' },
+        { key: 'tipo_tarjeta', label: 'Tipo Tarjeta' },
+        { key: 'pagada', label: 'Pagada', align:'center'},
+        { key: 'estado', label: 'Estado', align:'center', type:'status'},
+        { key: 'id', label: 'Acciones', align: 'center', type: 'actions'}
+       ],
+        result
+    );
+
+    if (!result.error)
+    {
+        state.tarjetas = result.data;
+    }
+}
+async function loadResultados()
+{
+    const container = document.getElementById('tabla-resultados');
+
+    if (!container)
+    {
+        console.warn("Contenedor tabla-resultados no existe");
+        return;
+    }
+
+    const result = await apiFetch('resultados_api');
+
+    renderTable(
+       'tabla-resultados',
+       [
+        { key: 'fecha', label: 'Fecha', align: 'center' },
+        { key: 'equipo_local', label: 'Equipo Local' }, 
+        { key: 'resultado', label: 'Resultado' },
+        { key: 'equipo_visitante', label: 'Equipo Visitante' }, 
+        { key: 'pago_arbitraje_local', label: 'Pago Arbitraje L' }, 
+        { key: 'pago_arbitraje_visitante', label: 'Pago Arbitraje V' },
+        { key: 'estado', label: 'Estado', align:'center', type:'status'},
+        { key: 'id', label: 'Acciones', align: 'center', type: 'actions'}
+       ],
+        result
+    );
+
+    if (!result.error)
+    {
+        state.resultados = result.data;
+    }
+}
+async function loadGoleadoresGeneral()
+{
+    const container = document.getElementById('tabla-goleadores-general');
+
+    if (!container)
+    {
+        console.warn("Contenedor tabla-goleadores-general no existe");
+        return;
+    }
+
+    const result = await apiFetch('goleadores_general_api');
+
+    renderTable(
+       'tabla-goleadores-general',
+       [
+        { key: 'nombre_categoria', label: 'Categoria' },
+        { key: 'jugador', label: 'Jugador' }, 
+        { key: 'equipo', label: 'Equipo' },
+        { key: 'total_goles', label: 'Total Goles' },
+        // { key: 'estado', label: 'Estado', align:'center', type:'status'},
+        { key: 'id', label: 'Acciones', align: 'center', type: 'actions'}
+       ],
+        result
+    );
+
+    if (!result.error)
+    {
+        state.goleadores_general = result.data;
+    }
+}
 /* ==========================================================
    INICIO
 ========================================================== */
@@ -449,8 +515,10 @@ document.addEventListener('DOMContentLoaded', () =>
     loadEquipos();
     loadJugadores();
     loadEncuentros();
-    loadParticipaciones();
     loadPosiciones();
+    loadTarjetas();
+    loadResultados();
+    loadGoleadoresGeneral();
 });
 
 /* ==========================================================
